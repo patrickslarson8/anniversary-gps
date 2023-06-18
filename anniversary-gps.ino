@@ -3,10 +3,11 @@
 #include <MD_Parola.h>
 #include <MD_MAX72xx.h>
 #include <SPI.h>
-#define GPSSerial Serial1
-Adafruit_GPS GPS(&GPSSerial);
 
+#define GPSSerial Serial1;
+// used for debugging
 #define GPSECHO false
+Adafruit_GPS GPS(&Wire);
 
 uint32_t timer = millis(); //todo: see if we can shrink this down
 uint8_t btn_pushes_remaining = 10;
@@ -66,7 +67,7 @@ void setup()
   delay(1000);
 
   // Ask for firmware version
-  GPSSerial.println(PMTK_Q_RELEASE);
+  GPS.println(PMTK_Q_RELEASE);
 
 }
 
