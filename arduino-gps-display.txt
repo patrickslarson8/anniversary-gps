@@ -1,0 +1,71 @@
+#include <stdint.h>
+#include <Adafruit_GPS.h>
+#include <SoftwareSerial.h>
+#include <MD_Parola.h>
+#include <MD_MAX72xx.h>
+#include <SPI.h>
+
+
+//GPS Settings
+SoftwareSerial mySerial(8, 7);
+Adafruit_GPS GPS(&mySerial);
+uint32_t timer = millis();
+
+// Display settings
+MD_Parola P = MD_Parola(MD_MAX72XX::FC16_HW, 10, 4);
+// #define SPEED_TIME  25
+// #define PAUSE_TIME  1000
+
+
+// Game settings
+const char msg_no_gps_msg[7] = { "No GPS" };
+const char msg_gps_fix[4] = { "Fix" };
+
+
+void setup()
+{
+
+  GPS.begin(9600);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
+  GPS.sendCommand(PGCMD_ANTENNA);// Request updates on antenna status, comment out to keep quiet
+
+  delay(1000);
+
+  // Ask for firmware version
+  GPS.println(PMTK_Q_RELEASE);
+
+  // Setup Displays
+  P.begin();
+}
+
+void loop()
+{
+
+    // testing code for display and GPS integration
+
+// read data from the GPS in the 'main loop'
+  char c = GPS.read();
+
+  // if a sentence is received, we can check the checksum, parse it...
+  if (GPS.newNMEAreceived()) {
+    // a tricky thing here is if we print the NMEA sentence, or data
+    // we end up not listening and catching other sentences!
+    // so be very wary if using OUTPUT_ALLDATA and trying to print out data
+    if (!GPS.parse(GPS.lastNMEA())) // this also sets the newNMEAreceived() flag to false
+      return; // we can fail to parse a sentence in which case we should just wait for another
+  }
+
+  // approximately every 2 seconds or so, print out the current stats
+  if (millis() - timer > 2000) {
+    timer = millis(); // reset the timer
+    if (GPS.fix) {
+      P.displayText(msg_gps_fix, PA_LEFT, 25, 2000, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+      while(!P.displayAnimate());
+    }
+    else {
+      P.displayText(msg_no_gps_msg, PA_LEFT, 25, 2000, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+      while(!P.displayAnimate());
+    }
+  }
+}
