@@ -4,110 +4,90 @@
 #include <MD_MAX72xx.h>
 #include <SPI.h>
 
+
+//GPS Settings
 #define GPSSerial Serial1;
 // used for debugging
 #define GPSECHO false
 Adafruit_GPS GPS(&Wire);
 
-uint32_t timer = millis(); //todo: see if we can shrink this down
-uint8_t btn_pushes_remaining = 10;
+uint32_t timer = millis();
 
-const int btn_pin = 2;
-const float dest_latitude = 0.0f;
-const float desst_longitude = 0.0f;
-int btn_state = 0;
-float distance_to_dest = 0.0f;
 
-const char* first_time_msg = "Happy Anniversary my love, let's play a game. When the button is pressed, the distance to your anniversary getaway will be displayed. You have ten button presses to find me. Good luck!";
-const char* game_over_msg = "Oh no! You are out of tries. No anniversary for Meg."; //todo
-const char* game_msg = "Button pushes remaining: "; //todo
-const char* msg_no_gps_msg = "Unable to acquire GPS. Please move outside and try again.";
+// Display settings
+#define HARDWARE_TYPE MD_MAX72XX::FC16_HW
+#define MAX_DEVICES 4
+#define CLK_PIN   13
+#define DATA_PIN  11
+#define CS_PIN    10
+MD_Parola P = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
+#define SPEED_TIME  25
+#define PAUSE_TIME  1000
+uint8_t scrollSpeed = 25;    // default frame delay value
+textEffect_t scrollEffect = PA_SCROLL_LEFT;
+textPosition_t scrollAlign = PA_LEFT;
+uint16_t scrollPause = 2000; // in milliseconds
+// Global message buffers shared by Serial and Scrolling functions
+#define	BUF_SIZE	75
+char curMessage[BUF_SIZE] = { "" };
+char newMessage[BUF_SIZE] = { "Hello! Enter new message?" };
+bool newMessageAvailable = true;
 
+// Game settings
+const char* msg_no_gps_msg = "Searching for GPS. Ensure box has clear view of sky.";
+const char* msg_gps_num_sat = "Current GPS satellites:";
+
+// displays input message on the dot matrix displays
+// Also sends to serial monitor for debugging
 void display(const char* message)
 {
-  // TODO
   Serial.println(message);
+  P.displayText(message, scrollAlign, scrollSpeed, scrollPause, scrollEffect, scrollEffect);
 }
 
-void display(const char*, uint8_t)
+// overload to display number of button pushes remaining
+void display(const char* message, uint8_t pushes_remaining)
 {
-
+  //todo
+  Serial.println(message);
+  P.displayText(message, scrollAlign, scrollSpeed, scrollPause, scrollEffect, scrollEffect);
 }
 
-float calculate_distance(nmea_float_t, nmea_float_t)
+// overload to display distance
+void display(const char* message, uint8_t pushes_remaining) //todo: update signature
 {
-  //TODO
+    //todo
 }
 
 void setup()
 {
-  pinMode(btn_pin, INPUT);
+
 
   while (!Serial);  // uncomment to have the sketch wait until Serial is ready
   // connect at 115200 so we can read the GPS fast enough and echo without dropping chars
   // also spit it out
   Serial.begin(115200);
-  Serial.println("Adafruit GPS library basic parsing test!");
+  Serial.println("Serial connected");
 
-  // 9600 NMEA is the default baud rate for Adafruit MTK GPS's- some use 4800
   GPS.begin(9600);
-  // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
-  // uncomment this line to turn on only the "minimum recommended" data
-  //GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
-  // For parsing data, we don't suggest using anything but either RMC only or RMC+GGA since
-  // the parser doesn't care about other sentences at this time
-  // Set the update rate
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
-  // For the parsing code to work nicely and have time to sort thru the data, and
-  // print it out we don't suggest using anything higher than 1 Hz
-
-  // Request updates on antenna status, comment out to keep quiet
-  GPS.sendCommand(PGCMD_ANTENNA);
+  GPS.sendCommand(PGCMD_ANTENNA);// Request updates on antenna status, comment out to keep quiet
 
   delay(1000);
 
   // Ask for firmware version
   GPS.println(PMTK_Q_RELEASE);
 
+  // Setup Displays
+  P.begin();
+  P.setInvert(false);
 }
 
 void loop()
 {
-	// wait for button push
-    // first button push, display welcome screen
-    // subsequent button pushes
-        // get gps position
-            // error message
-        // calculate distance to destination
-        // display distance to destination
-        // display number of tries remaining
-        // wait for next button push
-    // max number of button pushes
-        // keep showing or say game over?? leaning towards game over.
 
-    // psuedo code for game loop
-    btn_state = digitalRead(btn_pin);
-    if (btn_state == 1)
-    {
-      if (GPS.fix)
-      {
-        btn_pushes_remaining++;
-        switch(btn_pushes_remaining)
-        {
-          case 0: display(game_over_msg);
-          case 10: display(first_time_msg);
-          default: 
-            distance_to_dest = calculate_distance(GPS.latitude, GPS.longitude);
-            display(game_msg, btn_pushes_remaining);
-        }
-        btn_pushes_remaining--;
-      }
-      else
-      {
-        display(msg_no_gps_msg);
-      }
-    }
+    // testing code for display and GPS integration
 
 // read data from the GPS in the 'main loop'
   char c = GPS.read();
@@ -147,6 +127,7 @@ void loop()
     Serial.print("Fix: "); Serial.print((int)GPS.fix);
     Serial.print(" quality: "); Serial.println((int)GPS.fixquality);
     if (GPS.fix) {
+      // Normal output from sample
       Serial.print("Location: ");
       Serial.print(GPS.latitude, 4); Serial.print(GPS.lat);
       Serial.print(", ");
@@ -156,6 +137,12 @@ void loop()
       Serial.print("Altitude: "); Serial.println(GPS.altitude);
       Serial.print("Satellites: "); Serial.println((int)GPS.satellites);
       Serial.print("Antenna status: "); Serial.println((int)GPS.antenna);
+
+      // also output to the display
+      display(msg_gps_num_sat);
+    }
+    else {
+      display(msg_no_gps_msg);
     }
   }
 }
