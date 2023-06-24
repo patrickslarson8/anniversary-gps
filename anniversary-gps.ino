@@ -23,9 +23,10 @@ const char* game_over_msg = "Oh no! You are out of tries. No anniversary for Meg
 const char* game_msg = "Button pushes remaining: "; //todo
 const char* no_gps_msg = "Unable to acquire GPS. Please move outside and try again.";
 
-void display(const char*)
+void display(const char* message)
 {
   // TODO
+  Serial.println(message);
 }
 
 void display(const char*, uint8_t)

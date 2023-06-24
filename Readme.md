@@ -4,7 +4,28 @@ This is an arduino project for my 5th anniversary. It is a game that leads the u
 
 ## Gameplay
 
-## Materials Used
+## Materials
+
+### Item List
+
+### Physical Setup
+
+Wiring the displays:
+|Arduino Pin|Display Pin|
+|-|-|
+|GND|GND|
+|5v|Vcc|
+|11|DIN|
+|10|CS|
+|13|CLK|
+
+Wiring the GPS:
+|Arduino Pin|GPS Pin|
+|-|-|
+|3.3v|Vin|
+|GND|GND|
+|8|TX|
+|7|RX|
 
 ## Code
 
