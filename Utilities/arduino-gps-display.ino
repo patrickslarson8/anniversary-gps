@@ -19,49 +19,57 @@ MD_Parola P = MD_Parola(MD_MAX72XX::FC16_HW, 10, 4);
 #define DISPLAY_EFFECT PA_SCROLL_LEFT
 #define DISPLAY_ALIGN PA_LEFT
 
+// Switch Settings
+#define POWERPIN 4
+#define SWITCHPIN 2
+bool button_state = false;
+
 
 // Game settings
 // messages must end with NUL character or MD Parola overruns
-const char msg_no_gps_msg[8] = { "No GPS\0" };
-const char msg_gps_fix[5] = { "Fix\0" };
+const char msg_no_gps_no_btn[16] = { "No GPS, No BTN\0" };
+const char msg_gps_no_btn[13] = { "GPS, No BTN\0" };
+const char msg_no_gps_btn[13] = { "No GPS, BTN\0" };
+const char msg_gps_btn[10] = { "GPS, BTN\0" };
 const char msg_boot[6] = { "Boot\0" };
+
+// General stuff needed
+uint32_t timer = millis();
 
 void setup()
 {
+  // talk to computer
   Serial.begin(115200);
-
   delay(5000);
 
+  // Set up GPS
   GPS.begin(9600);
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
-  GPS.sendCommand(PGCMD_ANTENNA);// Request updates on antenna status, comment out to keep quiet
-
-  
-
-  
-  // Set GPS mode (RMC is most basic)
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
-  // Set GPS update rate
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY); // Set GPS mode (RMC is most basic)
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // Set GPS update rate
   GPS.sendCommand(PGCMD_NOANTENNA);
   delay(1000);
-  // Ask for GPS firmware version
-  GPS.println(PMTK_Q_RELEASE);
+  GPS.println(PMTK_Q_RELEASE);// Ask for GPS firmware version
 
-  // Setup Displays
+  // Set up displays
   P.begin();
 
+  // Set up switch
+  pinMode(POWERPIN, OUTPUT);
+  digitalWrite(POWERPIN, HIGH);
+  pinMode(SWITCHPIN, INPUT);
 }
 
-uint32_t timer = millis();
 void loop()
 {
   // call display animate as often as practicable IAW library docs
   P.displayAnimate();
 
-  // Might not be necessary
+  // read latest GPS
   char c = GPS.read();
+
+  // read pin state
+  button_state = digitalRead(SWITCHPIN);
 
   // if a sentence is received, we can check the checksum, parse it...
   if (GPS.newNMEAreceived()) {
@@ -76,13 +84,20 @@ void loop()
   if (millis() - timer > 2000) {
     timer = millis(); // reset the timer
     if (GPS.fix) {
-      P.displayText(msg_gps_fix, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
-      Serial.println(msg_gps_fix);
+      if (button_state) {
+              P.displayText(msg_gps_btn, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
+      }
+      else {
+              P.displayText(msg_gps_no_btn, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
+      }
     }
     else {
-      P.displayText(msg_no_gps_msg, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
-      Serial.println(msg_no_gps_msg);
-
+      if (button_state) {
+              P.displayText(msg_no_gps_btn, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
+      }
+      else {
+              P.displayText(msg_no_gps_no_btn, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
+      }
     }
   }
 }
