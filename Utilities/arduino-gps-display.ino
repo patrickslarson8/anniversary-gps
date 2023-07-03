@@ -9,7 +9,6 @@
 //GPS Settings
 SoftwareSerial mySerial(8, 7);
 Adafruit_GPS GPS(&mySerial);
-uint32_t timer = millis();
 
 // Display settings
 // Initialize display class
@@ -29,35 +28,40 @@ const char msg_boot[6] = { "Boot\0" };
 
 void setup()
 {
+  Serial.begin(115200);
+
+  delay(5000);
 
   GPS.begin(9600);
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
   GPS.sendCommand(PGCMD_ANTENNA);// Request updates on antenna status, comment out to keep quiet
 
-  delay(1000);
+  
 
+  
+  // Set GPS mode (RMC is most basic)
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY);
+  // Set GPS update rate
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+  GPS.sendCommand(PGCMD_NOANTENNA);
+  delay(1000);
   // Ask for GPS firmware version
   GPS.println(PMTK_Q_RELEASE);
 
   // Setup Displays
   P.begin();
-  P.setTextBuffer(msg_boot);
-  P.setTextAlignment(DISPLAY_ALIGN);
-  P.setSpeed(SPEED_TIME);
-  P.setPause(PAUSE_TIME);
-  P.setTextEffect(DISPLAY_EFFECT, DISPLAY_EFFECT);
-  P.displayReset();
+
 }
 
+uint32_t timer = millis();
 void loop()
 {
-  // testing code for display and GPS integration
-  // read data from the GPS in the 'main loop'
-  //char c = GPS.read();
-
   // call display animate as often as practicable IAW library docs
   P.displayAnimate();
+
+  // Might not be necessary
+  char c = GPS.read();
 
   // if a sentence is received, we can check the checksum, parse it...
   if (GPS.newNMEAreceived()) {
@@ -73,10 +77,11 @@ void loop()
     timer = millis(); // reset the timer
     if (GPS.fix) {
       P.displayText(msg_gps_fix, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
-
+      Serial.println(msg_gps_fix);
     }
     else {
       P.displayText(msg_no_gps_msg, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
+      Serial.println(msg_no_gps_msg);
 
     }
   }
