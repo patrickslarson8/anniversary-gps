@@ -27,6 +27,10 @@ Wiring the GPS:
 |8|TX|
 |7|RX|
 
+Wiring the switch:
+Pin 2 -> Switch -> Pin 4
+10k ohm resistor from GND to Pin 2
+
 ## Code
 
 ### Required Libraries
