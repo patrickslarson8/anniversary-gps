@@ -49,4 +49,7 @@ Pin 2 -> Switch -> Pin 4
 
 ## Todo
 
-1. Everything (Step 1 make this repo)
+- Troubleshoot str array operations
+- Fix button pushes remaining rollover after 0
+- Add button de-bounce
+- Link to stl files

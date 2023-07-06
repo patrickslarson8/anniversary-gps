@@ -55,15 +55,18 @@ char* display(char* buffer, const char* new_msg, uint8_t msg_size, uint8_t num_t
   // set up new memory space
   free(buffer);
   buffer = (char *) malloc(msg_size + 1);
+  Serial.println("space freed");
 
   // strip null character and add number
   strcpy(buffer, new_msg);
   char num_as_char = (char) num_to_append;
   buffer[msg_size] = num_as_char;
   buffer[msg_size + 1] = '\0';
+  Serial.println("Msg appended");
   
   // Display new array
   display(buffer);
+  Serial.println("buf displayed");
 
   // return pointer to buffer so main program can keep track
   // of things
@@ -99,7 +102,6 @@ void setup()
 {
   // talk to computer
   Serial.begin(115200);
-  Serial.println("Begin Setup");
   delay(5000);
 
   // Set up GPS
@@ -151,7 +153,7 @@ void loop()
       break;
     default: 
       Serial.println(btn_pushes_remaining);
-      display(str_buffer, game_msg, 27, btn_pushes_remaining);
+      str_buffer = display(str_buffer, game_msg, 27, btn_pushes_remaining);
       break;
     }
   } 
