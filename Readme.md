@@ -49,6 +49,10 @@ Pin 2 -> Switch -> Pin 4
 
 ## Todo
 
+- Fix fillets around bottom lid
+- Fix switch arm clearance issue for button
+- Make screen two layers thick
+- Add room for display cables
 - Troubleshoot str array operations
 - Fix button pushes remaining rollover after 0
 - Add button de-bounce
