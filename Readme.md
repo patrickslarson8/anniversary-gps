@@ -49,5 +49,4 @@ Pin 2 -> Switch -> Pin 4
 
 ## Todo
 
-- Troubleshoot str array operations
 - Link to stl files
