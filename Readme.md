@@ -50,5 +50,4 @@ Pin 2 -> Switch -> Pin 4
 ## Todo
 
 - Troubleshoot str array operations
-- Fix button pushes remaining rollover after 0
 - Link to stl files

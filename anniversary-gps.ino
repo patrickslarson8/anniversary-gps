@@ -63,9 +63,10 @@ char* display(char* buffer, const char* new_msg, uint8_t msg_size, uint8_t num_t
   // strip null character and add number
   strcpy(buffer, new_msg);
   char num_as_char = (char) num_to_append;
+  
   buffer[msg_size] = num_as_char;
   buffer[msg_size + 1] = '\0';
-  Serial.println("msgAppended");
+  Serial.println(buffer);
   
   // Display new array
   display(buffer);
