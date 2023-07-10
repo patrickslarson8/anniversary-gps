@@ -22,7 +22,7 @@ MD_Parola P = MD_Parola(MD_MAX72XX::FC16_HW, 10, 4);
 // Switch Settings
 #define POWERPIN 4
 #define SWITCHPIN 2
-bool button_state = false;
+bool button_state_debounced = false;
 
 
 // Game settings
@@ -34,7 +34,7 @@ const char msg_gps_btn[10] = { "GPS, BTN\0" };
 const char msg_boot[6] = { "Boot\0" };
 
 // General stuff needed
-uint32_t timer = millis();
+uint32_t gps_timer = millis();
 
 void setup()
 {
@@ -69,7 +69,7 @@ void loop()
   char c = GPS.read();
 
   // read pin state
-  button_state = digitalRead(SWITCHPIN);
+  button_state_debounced = digitalRead(SWITCHPIN);
 
   // if a sentence is received, we can check the checksum, parse it...
   if (GPS.newNMEAreceived()) {
@@ -81,10 +81,10 @@ void loop()
   }
 
   // approximately every 2 seconds or so, print out the current stats
-  if (millis() - timer > 2000) {
-    timer = millis(); // reset the timer
+  if (millis() - gps_timer > 2000) {
+    gps_timer = millis(); // reset the timer
     if (GPS.fix) {
-      if (button_state) {
+      if (button_state_debounced) {
               P.displayText(msg_gps_btn, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
       }
       else {
@@ -92,7 +92,7 @@ void loop()
       }
     }
     else {
-      if (button_state) {
+      if (button_state_debounced) {
               P.displayText(msg_no_gps_btn, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
       }
       else {

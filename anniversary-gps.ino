@@ -22,12 +22,14 @@ MD_Parola P = MD_Parola(MD_MAX72XX::FC16_HW, 10, 4);
 // Switch Settings
 #define POWERPIN 4
 #define SWITCHPIN 2
+#define DEBOUNCE_TIME 2000
 bool button_state = false;
+bool button_state_debounced = false;
 
 // Game settings
 const float dest_latitude = 0.0f;
 const float desst_longitude = 0.0f;
-uint8_t btn_pushes_remaining = 10;
+uint8_t btn_pushes_remaining = 11; // add an extra to display the welcome message
 
 // Messages (Must end with null character)
 char* str_buffer = (char *) malloc(1);
@@ -37,7 +39,8 @@ const char game_msg[27] = "Button pushes remaining: \0"; //todo
 const char msg_no_gps_msg[59] = "Unable to acquire GPS. Please move outside and try again.\0";
 
 // General stuff needed
-uint32_t timer = millis();
+uint32_t gps_timer = millis();
+uint32_t btn_timer = millis();
 float distance_to_dest = 0.0f;
 
 float calculate_distance(nmea_float_t, nmea_float_t)
@@ -55,18 +58,17 @@ char* display(char* buffer, const char* new_msg, uint8_t msg_size, uint8_t num_t
   // set up new memory space
   free(buffer);
   buffer = (char *) malloc(msg_size + 1);
-  Serial.println("space freed");
+  Serial.println("spaceFreed");
 
   // strip null character and add number
   strcpy(buffer, new_msg);
   char num_as_char = (char) num_to_append;
   buffer[msg_size] = num_as_char;
   buffer[msg_size + 1] = '\0';
-  Serial.println("Msg appended");
+  Serial.println("msgAppended");
   
   // Display new array
   display(buffer);
-  Serial.println("buf displayed");
 
   // return pointer to buffer so main program can keep track
   // of things
@@ -86,6 +88,18 @@ void background_tasks()
 
   // read pin state
   button_state = digitalRead(SWITCHPIN);
+
+  // routine to debounce button
+  if (button_state){
+    if ((millis() - btn_timer) < DEBOUNCE_TIME) {
+      button_state_debounced = false;
+    }
+    else {
+      button_state_debounced = true;
+      Serial.println("btn");
+      btn_timer = millis();
+    }
+  }
 
   // if a sentence is received, we can check the checksum, parse it...
   if (GPS.newNMEAreceived()) {
@@ -120,7 +134,6 @@ void setup()
   pinMode(POWERPIN, OUTPUT);
   digitalWrite(POWERPIN, HIGH);
   pinMode(SWITCHPIN, INPUT);
-  Serial.println("End Setup");
 }
 
 void loop()
@@ -140,8 +153,10 @@ void loop()
     // psuedo code for game loop
   background_tasks();
 
-  if (button_state)
+  if (button_state_debounced)
   {
+    button_state_debounced = false; // set to false to prevent counting twice
+    Serial.println(btn_pushes_remaining);
     switch (btn_pushes_remaining--) {
     case 10: 
       display(first_time_msg);
@@ -151,8 +166,7 @@ void loop()
       display(game_over_msg);
       Serial.println(game_over_msg);
       break;
-    default: 
-      Serial.println(btn_pushes_remaining);
+    default:
       str_buffer = display(str_buffer, game_msg, 27, btn_pushes_remaining);
       break;
     }
