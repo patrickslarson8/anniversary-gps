@@ -83,7 +83,6 @@ void background_tasks()
     }
     else {
       button_state_debounced = true;
-      Serial.println("btn");
       btn_timer = millis();
     }
   }
@@ -102,7 +101,6 @@ void background_tasks()
 void setup()
 {
   // talk to computer
-  Serial.begin(115200);
   delay(5000);
 
   // Set up GPS
@@ -143,16 +141,13 @@ void loop()
   if (button_state_debounced)
   {
     button_state_debounced = false; // set to false to prevent counting twice
-    Serial.println(btn_pushes_remaining);
     switch (btn_pushes_remaining) {
     case 11: 
       display(first_time_msg);
-      Serial.println(first_time_msg);
       btn_pushes_remaining--;
       break;
     case 0: 
       display(game_over_msg);
-      Serial.println(game_over_msg);
       break;
     default:
       append_and_display(game_msg, btn_pushes_remaining);
