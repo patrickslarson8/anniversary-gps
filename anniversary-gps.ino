@@ -32,11 +32,12 @@ const float desst_longitude = 0.0f;
 uint8_t btn_pushes_remaining = 11; // add an extra to display the welcome message
 
 // Messages (Must end with null character)
+// todo - fix rough draft of messages
 char* str_buffer = (char *) malloc(1);
-const char first_time_msg[147] = "Happy Anniversary my love! When the button is pressed, the distance to your anniversary getaway will be displayed. You have ten tries. Good luck!\0";
-const char game_over_msg[54] = "Oh no! You are out of tries. No anniversary for Meg.\0"; //todo
-const char game_msg[27] = "Button pushes remaining: \0"; //todo
-const char msg_no_gps_msg[59] = "Unable to acquire GPS. Please move outside and try again.\0";
+const String first_time_msg = "Happy Anniversary my love! When the button is pressed, the distance to your anniversary getaway will be displayed. You have ten tries. Good luck!";
+const String game_over_msg = "Oh no! You are out of tries. No anniversary for Meg"; 
+const String game_msg = "Button pushes remaining:"; 
+const String msg_no_gps_msg = "Unable to acquire GPS, please move outside and try again";
 
 // General stuff needed
 uint32_t gps_timer = millis();
@@ -48,32 +49,17 @@ float calculate_distance(nmea_float_t, nmea_float_t)
   //TODO
 }
 
-void display(const char* msg)
+void display(const String msg)
 {
-  P.displayText(msg, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
+
+  P.displayText(msg.c_str(), PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
 }
 
-char* display(char* buffer, const char* new_msg, uint8_t msg_size, uint8_t num_to_append)
+void append_and_display(const String msg, uint16_t num_to_append)
 {
-  // set up new memory space
-  free(buffer);
-  buffer = (char *) malloc(msg_size + 1);
-  Serial.println("spaceFreed");
-
-  // strip null character and add number
-  strcpy(buffer, new_msg);
-  char num_as_char = (char) num_to_append;
-  
-  buffer[msg_size] = num_as_char;
-  buffer[msg_size + 1] = '\0';
-  Serial.println(buffer);
-  
-  // Display new array
-  display(buffer);
-
-  // return pointer to buffer so main program can keep track
-  // of things
-  return buffer;
+  String temp_str = msg;
+  temp_str.concat(num_to_append);
+  display(temp_str);
 }
 
 // These are all the things that must be done
@@ -169,7 +155,7 @@ void loop()
       Serial.println(game_over_msg);
       break;
     default:
-      str_buffer = display(str_buffer, game_msg, 27, btn_pushes_remaining);
+      append_and_display(game_msg, btn_pushes_remaining);
       btn_pushes_remaining--;
       break;
     }

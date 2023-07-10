@@ -51,3 +51,5 @@ Pin 2 -> Switch -> Pin 4
 
 - Troubleshoot str array operations
 - Link to stl files
+- Shrink program because it is over the limit when using string classes
+  - Maybe can remove all serial printlines.
