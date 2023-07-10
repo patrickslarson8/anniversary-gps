@@ -33,11 +33,14 @@ uint8_t btn_pushes_remaining = 11; // add an extra to display the welcome messag
 
 // Messages (Must end with null character)
 // todo - fix rough draft of messages
-char* str_buffer = (char *) malloc(1);
-const String first_time_msg = "Happy Anniversary my love! When the button is pressed, the distance to your anniversary getaway will be displayed. You have ten tries. Good luck!";
-const String game_over_msg = "Oh no! You are out of tries. No anniversary for Meg"; 
-const String game_msg = "Button pushes remaining:"; 
-const String msg_no_gps_msg = "Unable to acquire GPS, please move outside and try again";
+String first_time_msg =
+   "Welcome!";
+String game_over_msg = 
+  "Oh no! You are out of tries. No anniversary for Meg"; 
+String game_msg = 
+  "Button pushes remaining:"; 
+String msg_no_gps_msg = 
+  "Unable to acquire GPS, please move outside and try again";
 
 // General stuff needed
 uint32_t gps_timer = millis();
@@ -49,13 +52,15 @@ float calculate_distance(nmea_float_t, nmea_float_t)
   //TODO
 }
 
-void display(const String msg)
+void display(String &msg)
 {
-
+  uint16_t size = msg.length() + 1;
+  char* buffer[size];
+  msg.toCharArray(*buffer,size,0);
   P.displayText(msg.c_str(), PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
 }
 
-void append_and_display(const String msg, uint16_t num_to_append)
+void append_and_display(const String &msg, uint16_t num_to_append)
 {
   String temp_str = msg;
   temp_str.concat(num_to_append);
