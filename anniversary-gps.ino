@@ -14,7 +14,7 @@ Adafruit_GPS GPS(&mySerial);
 // Initialize display class
 // args (display type, CS pin,# displays connected)
 MD_Parola P = MD_Parola(MD_MAX72XX::FC16_HW, 10, 4);
-#define SPEED_TIME  25
+#define SPEED_TIME  35
 #define PAUSE_TIME  0
 #define DISPLAY_EFFECT PA_SCROLL_LEFT
 #define DISPLAY_ALIGN PA_LEFT
@@ -33,7 +33,7 @@ uint8_t btn_pushes_remaining = 11; // add an extra to display the welcome messag
 
 // Messages (Must end with null character)
 char* str_buffer = (char *) malloc(1);
-const char first_time_msg[162] = "Happy Anniversary my love! When the button is pressed, the distance to your anniversary getaway will be displayed. You have ten button presses to it. Good luck!\0";
+const char first_time_msg[147] = "Happy Anniversary my love! When the button is pressed, the distance to your anniversary getaway will be displayed. You have ten tries. Good luck!\0";
 const char game_over_msg[54] = "Oh no! You are out of tries. No anniversary for Meg.\0"; //todo
 const char game_msg[27] = "Button pushes remaining: \0"; //todo
 const char msg_no_gps_msg[59] = "Unable to acquire GPS. Please move outside and try again.\0";
@@ -157,10 +157,11 @@ void loop()
   {
     button_state_debounced = false; // set to false to prevent counting twice
     Serial.println(btn_pushes_remaining);
-    switch (btn_pushes_remaining--) {
-    case 10: 
+    switch (btn_pushes_remaining) {
+    case 11: 
       display(first_time_msg);
       Serial.println(first_time_msg);
+      btn_pushes_remaining--;
       break;
     case 0: 
       display(game_over_msg);
@@ -168,6 +169,7 @@ void loop()
       break;
     default:
       str_buffer = display(str_buffer, game_msg, 27, btn_pushes_remaining);
+      btn_pushes_remaining--;
       break;
     }
   } 
