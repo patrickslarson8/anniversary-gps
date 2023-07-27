@@ -14,7 +14,7 @@ TinyGPSPlus gps;
 // Initialize display class
 // args (display type, CS pin,# displays connected)
 MD_Parola P = MD_Parola(MD_MAX72XX::FC16_HW, 10, 4);
-#define SPEED_TIME  35
+#define SPEED_TIME  100
 #define PAUSE_TIME  0
 #define DISPLAY_EFFECT PA_SCROLL_LEFT
 #define DISPLAY_ALIGN PA_LEFT
@@ -144,7 +144,9 @@ void loop()
 {
   background_tasks();
 
-  if (button_state_debounced){
+  
+
+  if (button_state_debounced && display_finished){
     if (!gps.location.isValid()){
     display(no_gps_msg);
     }
