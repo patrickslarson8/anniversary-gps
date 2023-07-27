@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <Adafruit_GPS.h>
+#include <TinyGPSPlus.h>
 #include <SoftwareSerial.h>
 #include <MD_Parola.h>
 #include <MD_MAX72xx.h>
@@ -7,8 +7,8 @@
 
 
 //GPS Settings
-SoftwareSerial mySerial(8, 7);
-Adafruit_GPS GPS(&mySerial);
+SoftwareSerial ss(8, 7);
+TinyGPSPlus gps;
 
 // Display settings
 // Initialize display class
@@ -27,39 +27,41 @@ bool button_state = false;
 bool button_state_debounced = false;
 
 // Game settings
-const float dest_latitude = 0.0f;
-const float desst_longitude = 0.0f;
-uint8_t btn_pushes_remaining = 11; // add an extra to display the welcome message
+//set to Steven's River Cabin see https://www.google.com/maps/place/Steven%E2%80%99s+River+cabin/@48.1029156,-121.9454161,17z
+static const double CABIN_LAT = 48.102915, CABIN_LON = -121.945416;
+uint8_t btn_pushes_remaining = 11;
 
-// Messages (Must end with null character)
-char* str_buffer = (char *) malloc(1);
-const char first_time_msg[] = "Happy Anniversary my love! When the button is pressed, the distance to your anniversary getaway will be displayed. You have ten tries. Good luck!\0";
-const char game_over_msg[] = "Oh no! You are out of tries. No anniversary for Meg.\0"; //todo
-char game_msg_buffer[] = "Button pushes remaining:  \0"; //todo
-#define LOC_TO_INSERT_NUM 24
-const char msg_no_gps_msg[] = "Unable to acquire GPS. Please move outside and try again.\0";
+// Messages
+const String first_time_msg = "Happy Anniversary! When the button is pressed, the distance to your anniversary getaway will be displayed. You have ten tries. Good luck!";
+const String game_over_msg = "Oh no! You are out of tries. No anniversary for Meg.";
+const String game_msg_btn = "Button pushes remaining:  ";
+const String game_msg_dist = "Distance to anniversary: ";
+const String units = " mi. ";
+const String no_gps_msg = "Unable to acquire GPS. Please move outside and try again.";
+String temp;
 
 // General stuff needed
 uint32_t gps_timer = millis();
 uint32_t btn_timer = millis();
-float distance_to_dest = 0.0f;
+#define km_to_mi_conversion 0.621371
 
-float calculate_distance(nmea_float_t, nmea_float_t)
+
+void display(const String &msg)
 {
-  //TODO
+  Serial.println(msg);
+  P.displayText(msg.c_str(), PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
 }
 
-void display(const char* msg)
+void display(const String &msg, double distance, uint8_t num)
 {
-  P.displayText(msg, PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
-}
+  temp = msg;
 
-void display(char* msg, uint8_t num)
-{
-  //char num_buffer[3];
-  char* pPlaceInArray = &msg[LOC_TO_INSERT_NUM];
-  itoa(num, pPlaceInArray, 10);
-  display(msg);
+  temp.concat(distance);
+  temp.concat(units);
+  temp.concat(game_msg_btn);
+  temp.concat(num);
+  Serial.println(temp);
+  P.displayText(temp.c_str(), PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
 }
 
 // These are all the things that must be done
@@ -71,7 +73,29 @@ void background_tasks()
   P.displayAnimate();
 
   // read latest GPS
-  char c = GPS.read();
+  while (ss.available()){
+      gps.encode(ss.read());
+  }
+  // debugging
+//  if (gps.location.isUpdated())
+//  {
+//    Serial.print(F("LOCATION   Fix Age="));
+//    Serial.print(gps.location.age());
+//    Serial.print(F("ms Raw Lat="));
+//    Serial.print(gps.location.rawLat().negative ? "-" : "+");
+//    Serial.print(gps.location.rawLat().deg);
+//    Serial.print("[+");
+//    Serial.print(gps.location.rawLat().billionths);
+//    Serial.print(F(" billionths],  Raw Long="));
+//    Serial.print(gps.location.rawLng().negative ? "-" : "+");
+//    Serial.print(gps.location.rawLng().deg);
+//    Serial.print("[+");
+//    Serial.print(gps.location.rawLng().billionths);
+//    Serial.print(F(" billionths],  Lat="));
+//    Serial.print(gps.location.lat(), 6);
+//    Serial.print(F(" Long="));
+//    Serial.println(gps.location.lng(), 6);
+//  }
 
   // read pin state
   button_state = digitalRead(SWITCHPIN);
@@ -87,31 +111,23 @@ void background_tasks()
     }
   }
 
-  // if a sentence is received, we can check the checksum, parse it...
-  if (GPS.newNMEAreceived()) {
-    // a tricky thing here is if we print the NMEA sentence, or data
-    // we end up not listening and catching other sentences!
-    // so be very wary if using OUTPUT_ALLDATA and trying to print out data
-    if (!GPS.parse(GPS.lastNMEA())) // this also sets the newNMEAreceived() flag to false
-      return; // we can fail to parse a sentence in which case we should just wait for another
-  }
   return;
 }
 
 void setup()
 {
   // talk to computer
-  //Serial.begin(115200);
+  Serial.begin(115200);
   delay(1000);
 
   // Set up GPS
-  GPS.begin(9600);
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
-  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY); // Set GPS mode (RMC is most basic)
-  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // Set GPS update rate
-  GPS.sendCommand(PGCMD_NOANTENNA);
-  delay(1000);
-  GPS.println(PMTK_Q_RELEASE);// Ask for GPS firmware version
+  ss.begin(9600);
+  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // 1 Hz update rate
+  // GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCONLY); // Set GPS mode (RMC is most basic)
+  // GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ); // Set GPS update rate
+  // GPS.sendCommand(PGCMD_NOANTENNA);
+  // delay(1000);
+  // GPS.println(PMTK_Q_RELEASE);// Ask for GPS firmware version
 
   // Set up displays
   P.begin();
@@ -124,22 +140,14 @@ void setup()
 
 void loop()
 {
-	// wait for button push
-    // first button push, display welcome screen
-    // subsequent button pushes
-        // get gps position
-            // error message
-        // calculate distance to destination
-        // display distance to destination
-        // display number of tries remaining
-        // wait for next button push
-    // max number of button pushes
-        // keep showing or say game over?? leaning towards game over.
-
-    // psuedo code for game loop
   background_tasks();
 
-  if (button_state_debounced)
+  if (!gps.location.isValid()){
+    Serial.println("No GPS");
+    display(no_gps_msg);
+  }
+
+  else if (button_state_debounced)
   {
     button_state_debounced = false; // set to false to prevent counting twice
     Serial.println(btn_pushes_remaining);
@@ -152,7 +160,10 @@ void loop()
       display(game_over_msg);
       break;
     default:
-      display(game_msg_buffer, btn_pushes_remaining);
+      double distance = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), CABIN_LAT, CABIN_LON);
+      Serial.println(distance);
+      distance = distance * km_to_mi_conversion;
+      display(game_msg_dist, distance, btn_pushes_remaining);
       btn_pushes_remaining--;
       break;
     }
