@@ -31,7 +31,7 @@ bool button_state_debounced = false;
 //set to Steven's River Cabin see https://www.google.com/maps/place/Steven%E2%80%99s+River+cabin/@48.1029156,-121.9454161,17z
 static const double CABIN_LAT = 48.102915, CABIN_LON = -121.945416;
 static const double LONDON_LAT = 51.508131, LONDON_LON = -0.128002;
-uint8_t btn_pushes_remaining = 11;
+uint8_t btn_pushes_remaining = 12;
 
 // Messages
 const String first_time_msg = "Happy Anniversary! When the button is pressed, the distance to your anniversary getaway will be displayed. You have ten tries. Good luck!";
@@ -154,7 +154,7 @@ void loop()
     button_state_debounced = false; // set to false to prevent counting twice
     Serial.println(btn_pushes_remaining);
     switch (btn_pushes_remaining) {
-    case 11: 
+    case 12: 
       display(first_time_msg);
       btn_pushes_remaining--;
       break;
@@ -169,9 +169,9 @@ void loop()
       Serial.println(CABIN_LON);
       Serial.println(distance);
 
+      btn_pushes_remaining--;
       distance = distance * km_to_mi_conversion;
       display(game_msg_dist, distance, btn_pushes_remaining);
-      btn_pushes_remaining--;
       break;
     }
   } 
