@@ -18,6 +18,7 @@ MD_Parola P = MD_Parola(MD_MAX72XX::FC16_HW, 10, 4);
 #define PAUSE_TIME  0
 #define DISPLAY_EFFECT PA_SCROLL_LEFT
 #define DISPLAY_ALIGN PA_LEFT
+bool display_finished = true;
 
 // Switch Settings
 #define POWERPIN 4
@@ -45,11 +46,12 @@ uint32_t gps_timer = millis();
 uint32_t btn_timer = millis();
 #define km_to_mi_conversion 0.621371
 
-
+// Pushes a new message to display, but only if the display is finished
 void display(const String &msg)
 {
-  Serial.println(msg);
-  P.displayText(msg.c_str(), PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
+  if (display_finished){
+    P.displayText(msg.c_str(), PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
+  }
 }
 
 void display(const String &msg, double distance, uint8_t num)
@@ -70,10 +72,10 @@ void display(const String &msg, double distance, uint8_t num)
 void background_tasks()
 {
   // call display animate as often as practicable IAW library docs
-  P.displayAnimate();
+  display_finished = P.displayAnimate();
 
   // read latest GPS
-  while (ss.available()){
+  if (ss.available()){
       gps.encode(ss.read());
   }
   // debugging
@@ -118,7 +120,7 @@ void setup()
 {
   // talk to computer
   Serial.begin(115200);
-  delay(1000);
+  delay(5000);
 
   // Set up GPS
   ss.begin(9600);
@@ -143,7 +145,6 @@ void loop()
   background_tasks();
 
   if (!gps.location.isValid()){
-    Serial.println("No GPS");
     display(no_gps_msg);
   }
 
@@ -161,6 +162,10 @@ void loop()
       break;
     default:
       double distance = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), CABIN_LAT, CABIN_LON);
+      Serial.println(gps.location.lat());
+      Serial.println(gps.location.lng());
+      Serial.println(CABIN_LAT);
+      Serial.println(CABIN_LON);
       Serial.println(distance);
       distance = distance * km_to_mi_conversion;
       display(game_msg_dist, distance, btn_pushes_remaining);
