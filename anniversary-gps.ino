@@ -30,7 +30,6 @@ bool button_state_debounced = false;
 // Game settings
 //set to Steven's River Cabin see https://www.google.com/maps/place/Steven%E2%80%99s+River+cabin/@48.1029156,-121.9454161,17z
 static const double CABIN_LAT = 48.102915, CABIN_LON = -121.945416;
-static const double LONDON_LAT = 51.508131, LONDON_LON = -0.128002;
 uint8_t btn_pushes_remaining = 12;
 
 // Messages
@@ -145,34 +144,34 @@ void loop()
 {
   background_tasks();
 
-  if (!gps.location.isValid()){
+  if (button_state_debounced){
+    if (!gps.location.isValid()){
     display(no_gps_msg);
-  }
+    }
+    else{
+      button_state_debounced = false; // set to false to prevent counting twice
+      Serial.println(btn_pushes_remaining);
+      switch (btn_pushes_remaining) {
+      case 12: 
+        display(first_time_msg);
+        btn_pushes_remaining--;
+        break;
+      case 0: 
+        display(game_over_msg);
+        break;
+      default:
+        double distance = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), CABIN_LAT, CABIN_LON) / 1000;
+        Serial.println(gps.location.lat());
+        Serial.println(gps.location.lng());
+        Serial.println(CABIN_LAT);
+        Serial.println(CABIN_LON);
+        Serial.println(distance);
 
-  else if (button_state_debounced)
-  {
-    button_state_debounced = false; // set to false to prevent counting twice
-    Serial.println(btn_pushes_remaining);
-    switch (btn_pushes_remaining) {
-    case 12: 
-      display(first_time_msg);
-      btn_pushes_remaining--;
-      break;
-    case 0: 
-      display(game_over_msg);
-      break;
-    default:
-      double distance = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), CABIN_LAT, CABIN_LON) / 1000;
-      Serial.println(gps.location.lat());
-      Serial.println(gps.location.lng());
-      Serial.println(CABIN_LAT);
-      Serial.println(CABIN_LON);
-      Serial.println(distance);
-
-      btn_pushes_remaining--;
-      distance = distance * km_to_mi_conversion;
-      display(game_msg_dist, distance, btn_pushes_remaining);
-      break;
+        btn_pushes_remaining--;
+        distance = distance * km_to_mi_conversion;
+        display(game_msg_dist, distance, btn_pushes_remaining);
+        break;
+      }
     }
   } 
 }
