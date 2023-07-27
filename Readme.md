@@ -20,7 +20,7 @@ The player discovers a mysterious box. When they push the button on the box, a m
 8. Various wires (https://www.amazon.com/dp/B089FZ79CS)
 9. 3 small screws
 
-### Physical Setup
+### Wiring
 
 Wiring the displays:
 |Arduino Pin|Display Pin|
@@ -42,6 +42,14 @@ Wiring the GPS:
 Wiring the switch:
 Pin 2 -> Switch -> Pin 4
 10k ohm resistor from GND to Pin 2
+
+### Assembly
+
+Print out the stl files located below. I used hatchbox wood PLA and then stained it using the method in this video: https://www.youtube.com/watch?v=kuKgpi9BIiM
+
+Program the arduino using the code in this repository. Be sure to change any game settings (like desired location) to your liking.
+
+After the parts are printed, place all the parts into the box and secure with screws/zip ties as appropriate. I secured the dot matrix screen with a couple spots of superglue. The switch is secured with two pieces of filament and some superglue.
 
 ## Code
 
