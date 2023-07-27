@@ -30,7 +30,8 @@ bool button_state_debounced = false;
 // Game settings
 //set to Steven's River Cabin see https://www.google.com/maps/place/Steven%E2%80%99s+River+cabin/@48.1029156,-121.9454161,17z
 static const double CABIN_LAT = 48.102915, CABIN_LON = -121.945416;
-uint8_t btn_pushes_remaining = 12;
+#define max_num_btn_pushes 12
+uint8_t btn_pushes_remaining = max_num_btn_pushes;
 
 // Messages
 const String first_time_msg = "Happy Anniversary! When the button is pressed, the distance to your anniversary getaway will be displayed. You have ten tries. Good luck!";
@@ -62,7 +63,9 @@ void display(const String &msg, double distance, uint8_t num)
   temp.concat(units);
   temp.concat(game_msg_btn);
   temp.concat(num);
+
   Serial.println(temp);
+
   P.displayText(temp.c_str(), PA_LEFT, SPEED_TIME, PAUSE_TIME, DISPLAY_EFFECT, DISPLAY_EFFECT);
 }
 
@@ -78,28 +81,7 @@ void background_tasks()
   if (ss.available()){
       gps.encode(ss.read());
   }
-  // debugging
-//  if (gps.location.isUpdated())
-//  {
-//    Serial.print(F("LOCATION   Fix Age="));
-//    Serial.print(gps.location.age());
-//    Serial.print(F("ms Raw Lat="));
-//    Serial.print(gps.location.rawLat().negative ? "-" : "+");
-//    Serial.print(gps.location.rawLat().deg);
-//    Serial.print("[+");
-//    Serial.print(gps.location.rawLat().billionths);
-//    Serial.print(F(" billionths],  Raw Long="));
-//    Serial.print(gps.location.rawLng().negative ? "-" : "+");
-//    Serial.print(gps.location.rawLng().deg);
-//    Serial.print("[+");
-//    Serial.print(gps.location.rawLng().billionths);
-//    Serial.print(F(" billionths],  Lat="));
-//    Serial.print(gps.location.lat(), 6);
-//    Serial.print(F(" Long="));
-//    Serial.println(gps.location.lng(), 6);
-//  }
 
-  // read pin state
   button_state = digitalRead(SWITCHPIN);
 
   // routine to debounce button
@@ -144,8 +126,6 @@ void loop()
 {
   background_tasks();
 
-  
-
   if (button_state_debounced && display_finished){
     if (!gps.location.isValid()){
     display(no_gps_msg);
@@ -154,23 +134,21 @@ void loop()
       button_state_debounced = false; // set to false to prevent counting twice
       Serial.println(btn_pushes_remaining);
       switch (btn_pushes_remaining) {
-      case 12: 
+
+      case max_num_btn_pushes: 
         display(first_time_msg);
         btn_pushes_remaining--;
         break;
+
       case 0: 
         display(game_over_msg);
         break;
+
       default:
         double distance = TinyGPSPlus::distanceBetween(gps.location.lat(), gps.location.lng(), CABIN_LAT, CABIN_LON) / 1000;
-        Serial.println(gps.location.lat());
-        Serial.println(gps.location.lng());
-        Serial.println(CABIN_LAT);
-        Serial.println(CABIN_LON);
-        Serial.println(distance);
+        distance = distance * km_to_mi_conversion;
 
         btn_pushes_remaining--;
-        distance = distance * km_to_mi_conversion;
         display(game_msg_dist, distance, btn_pushes_remaining);
         break;
       }
