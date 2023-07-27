@@ -10,15 +10,16 @@ The player discovers a mysterious box. When they push the button on the box, a m
 
 ### Item List
 
-1. Arduino Uno
-2. Adafruit Ultimate GPS (https://www.amazon.com/dp/B01H1R8BK0)
-3. GPS Antenna (One is built into the adafruit module but I used a seperate one for better reception) (https://www.amazon.com/dp/B07ZRBFNLH)
-4. 4 LED Dot Matrix displays (https://www.amazon.com/dp/B07FFV537V)
-5. A microswitch (https://www.amazon.com/dp/B07X142VGC)
-6. A 10k ohm resistor
-7. 9 volt battery holder (https://www.amazon.com/dp/B00LSG5AGO)
-8. Various wires (https://www.amazon.com/dp/B089FZ79CS)
-9. 3 small screws
+1. 3D printed pieces (https://thangs.com/designer/Pataforce8/3d-model/Arduino%20GPS%20with%20display%20box-910482)
+2. Arduino Uno
+3. Adafruit Ultimate GPS (https://www.amazon.com/dp/B01H1R8BK0)
+4. GPS Antenna (One is built into the adafruit module but I used a seperate one for better reception) (https://www.amazon.com/dp/B07ZRBFNLH)
+5. 4 LED Dot Matrix displays (https://www.amazon.com/dp/B07FFV537V)
+6. A microswitch (https://www.amazon.com/dp/B07X142VGC)
+7. A 10k ohm resistor
+8. 9 volt battery holder (https://www.amazon.com/dp/B00LSG5AGO)
+9. Various wires (https://www.amazon.com/dp/B089FZ79CS)
+10. 3 small screws
 
 ### Wiring
 
@@ -69,5 +70,4 @@ After the parts are printed, place all the parts into the box and secure with sc
 
 ## Todo
 
-- Link to stl files
 - List types of screws used
