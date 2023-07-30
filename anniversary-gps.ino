@@ -16,7 +16,7 @@ TinyGPSPlus gps;
 MD_Parola P = MD_Parola(MD_MAX72XX::FC16_HW, 10, 4);
 #define SPEED_TIME  100
 #define PAUSE_TIME  0
-#define DISPLAY_EFFECT PA_SCROLL_LEFT
+#define DISPLAY_EFFECT PA_SCROLL_RIGHT
 #define DISPLAY_ALIGN PA_LEFT
 bool display_finished = true;
 
@@ -115,6 +115,8 @@ void setup()
 
   // Set up displays
   P.begin();
+  P.setZoneEffect(0,true,PA_FLIP_LR); //Documentation says not to use these with scrolling but seems to work
+  P.setZoneEffect(0,true,PA_FLIP_UD);
 
   // Set up switch
   pinMode(POWERPIN, OUTPUT);
