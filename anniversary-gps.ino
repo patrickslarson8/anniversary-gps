@@ -28,8 +28,9 @@ bool button_state = false;
 bool button_state_debounced = false;
 
 // Game settings
-//set to Steven's River Cabin see https://www.google.com/maps/place/Steven%E2%80%99s+River+cabin/@48.1029156,-121.9454161,17z
-static const double CABIN_LAT = 48.102915, CABIN_LON = -121.945416;
+//set to desired location
+// static const double CABIN_LAT = xx.xxxxxx, CABIN_LON = -xxx.xxxxxx;
+static const double CABIN_LAT , CABIN_LON ;
 #define max_num_btn_pushes 12
 uint8_t btn_pushes_remaining = max_num_btn_pushes;
 
